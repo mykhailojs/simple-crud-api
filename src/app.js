@@ -6,9 +6,9 @@ dotenv.config();
 
 const PORT = process.env.PORT || 3000;
 
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
   if (req.url.startsWith('/api/users')) {
-    handleUserRequests(req, res);
+    await handleUserRequests(req, res);
   } else {
     res.statusCode = 404;
     res.setHeader('Content-Type', 'application/json');

@@ -1,26 +1,30 @@
-import { v4 as uuidv4, validate as uuidValidate } from 'uuid';
 import {handlerError} from "../../helpers/handler-error.js";
+import { v4 as uuidv4, validate as uuidValidate } from 'uuid';
 
-let users = [];
 
-export const handleUserRequests = (req, res) => {
+
+let userDb = [];
+
+export const handleUserRequests = async (req, res) => {
     try {
-        const urlParts = req.url.split('/');
-        const userId = urlParts[3];
-        const isValidUUID = uuidValidate(userId);
-        if ((req.method === 'GET' || req.method === 'PUT' || req.method === 'DELETE') && urlParts.length === 4 && !isValidUUID) {
+
+        const path = req.url.split('/');
+        const userId = path[3];
+        const isValidId = uuidValidate(userId);
+
+        if ((req.method === 'GET' || req.method === 'PUT' || req.method === 'DELETE') && path.length === 4 && !isValidId) {
             res.statusCode = 400;
             res.setHeader('Content-Type', 'application/json');
             res.end(JSON.stringify({ message: 'Invalid userId' }));
             return;
         }
 
-        if (req.method === 'GET' && urlParts.length === 3) {
+        if (req.method === 'GET' && path.length === 3) {
             res.statusCode = 200;
             res.setHeader('Content-Type', 'application/json');
-            res.end(JSON.stringify(users));
-        } else if (req.method === 'GET' && urlParts.length === 4) {
-            const user = users.find(u => u.id === userId);
+            res.end(JSON.stringify(userDb));
+        } else if (req.method === 'GET' && path.length === 4) {
+            const user = userDb.find(u => u.id === userId);
             if (!user) {
                 res.statusCode = 404;
                 res.setHeader('Content-Type', 'application/json');
@@ -30,7 +34,7 @@ export const handleUserRequests = (req, res) => {
                 res.setHeader('Content-Type', 'application/json');
                 res.end(JSON.stringify(user));
             }
-        } else if (req.method === 'POST' && urlParts.length === 3) {
+        } else if (req.method === 'POST' && path.length === 3) {
             let body = '';
             req.on('data', chunk => {
                 body += chunk.toString();
@@ -43,11 +47,11 @@ export const handleUserRequests = (req, res) => {
                         res.setHeader('Content-Type', 'application/json');
                         res.end(JSON.stringify({ message: 'Invalid request body' }));
                     } else {
-                        const newUser = { id: uuidv4(), username, age, hobbies };
-                        users.push(newUser);
+                        const createdUser = { id: uuidv4(), username, age, hobbies };
+                        userDb.push(createdUser);
                         res.statusCode = 201;
                         res.setHeader('Content-Type', 'application/json');
-                        res.end(JSON.stringify(newUser));
+                        res.end(JSON.stringify(createdUser));
                     }
                 } catch (error) {
                     res.statusCode = 400;
@@ -55,15 +59,15 @@ export const handleUserRequests = (req, res) => {
                     res.end(JSON.stringify({ message: 'Invalid JSON' }));
                 }
             });
-        } else if (req.method === 'PUT' && urlParts.length === 4) {
+        } else if (req.method === 'PUT' && path.length === 4) {
             let body = '';
             req.on('data', chunk => {
                 body += chunk.toString();
             });
             req.on('end', () => {
                 const { username, age, hobbies } = JSON.parse(body);
-                const userIndex = users.findIndex(u => u.id === userId);
-                if (userIndex === -1) {
+                const index = userDb.findIndex(u => u.id === userId);
+                if (index === -1) {
                     res.statusCode = 404;
                     res.setHeader('Content-Type', 'application/json');
                     res.end(JSON.stringify({ message: 'User not found' }));
@@ -72,20 +76,20 @@ export const handleUserRequests = (req, res) => {
                     res.setHeader('Content-Type', 'application/json');
                     res.end(JSON.stringify({ message: 'Invalid request body' }));
                 } else {
-                    users[userIndex] = { id: userId, username, age, hobbies };
+                    userDb[index] = { id: userId, username, age, hobbies };
                     res.statusCode = 200;
                     res.setHeader('Content-Type', 'application/json');
-                    res.end(JSON.stringify(users[userIndex]));
+                    res.end(JSON.stringify(userDb[index]));
                 }
             });
-        } else if (req.method === 'DELETE' && urlParts.length === 4) {
-            const userIndex = users.findIndex(u => u.id === userId);
-            if (userIndex === -1) {
+        } else if (req.method === 'DELETE' && path.length === 4) {
+            const index = userDb.findIndex(u => u.id === userId);
+            if (index === -1) {
                 res.statusCode = 404;
                 res.setHeader('Content-Type', 'application/json');
                 res.end(JSON.stringify({ message: 'User not found' }));
             } else {
-                users.splice(userIndex, 1);
+                userDb.splice(index, 1);
                 res.statusCode = 204;
                 res.end();
             }
