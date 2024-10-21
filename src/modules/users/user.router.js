@@ -1,4 +1,5 @@
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid';
+import {handlerError} from "../../helpers/handler-error.js";
 
 let users = [];
 
@@ -93,9 +94,7 @@ export const handleUserRequests = (req, res) => {
             res.setHeader('Content-Type', 'application/json');
             res.end(JSON.stringify({ message: 'Resource not found' }));
         }
-    } catch (error) {
-        res.statusCode = 500;
-        res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify({ message: 'Internal Server Error' }));
+    } catch (err) {
+        handlerError(res, err);
     }
 };
