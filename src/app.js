@@ -12,7 +12,7 @@ const server = http.createServer((req, res) => {
   } else {
     res.statusCode = 404;
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ message: 'Resource not found' }));
+    res.end(JSON.stringify({ message: 'Resource not found, please use correct email' }));
   }
 });
 
